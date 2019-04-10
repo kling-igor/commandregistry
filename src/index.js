@@ -48,7 +48,7 @@ export class CommandRegistry {
     const commandNames = new Set
     const commands = []
 
-    let currentTarget = target
+    let currentTarget = target || this.root
 
     while (true) {
       for (const commandName in this.listenersByCommandName) {
