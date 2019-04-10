@@ -1,8 +1,6 @@
 import { Disposable } from 'event-kit'
 
-function humanizeEventName(name) {
-  return name
-}
+import { humanizeEventName } from './menu-helpers'
 
 const selectorCompare = (self, other) => self.sequenceNumber - other.sequenceNumber
 
@@ -44,6 +42,36 @@ export class CommandRegistry {
         delete this.listenersByCommandName[commandName]
       }
     })
+  }
+
+  findCommands({ target }) {
+    const commandNames = new Set
+    const commands = []
+
+    let currentTarget = target
+
+    while (true) {
+      for (const commandName in this.listenersByCommandName) {
+        const listeners = this.listenersByCommandName[commandName]
+        for (const listener of listeners) {
+          if (listener.selector === currentTarget.tag) {
+            if (!commandNames.has(commandName)) {
+              commandNames.add(commandName)
+              const { description } = listener
+              commands.push({ commandName, description })
+            }
+          }
+        }
+      }
+
+      if (currentTarget === this.root) {
+        break
+      }
+
+      currentTarget = currentTarget.parent || this.root
+    }
+
+    return commands
   }
 
   handleCommand(target, commandName, args) {

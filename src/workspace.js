@@ -30,6 +30,6 @@ export class Workspace {
   }
 
   openProject() {
-
+    console.lgf('OPENING PROJECT')
   }
 }

@@ -4,6 +4,8 @@ import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chaiAsPromised from "chai-as-promised"
 
+import { CompositeDisposable } from 'event-kit'
+
 import { CommandRegistry } from '..'
 import { Workspace } from '../workspace'
 import { TextEditor } from '../text-editor'
@@ -100,6 +102,35 @@ describe('command registry', () => {
     expect(promise).to.be.fulfilled
 
     disposabel.dispose()
+  })
+
+  it('should return registered commands descriptions', () => {
+    const workspace = new Workspace()
+    const commands = new CommandRegistry()
+    commands.attach(workspace)
+    const disposables = new CompositeDisposable
+    disposables.add(
+      commands.add('workspace', 'files:close-all', function (args) {
+        this.closeAllFiles()
+      }),
+      commands.add('workspace', 'files:open-project', function (args) {
+        this.openProject()
+      })
+    )
+
+    const descriptions = commands.findCommands({ target: workspace })
+
+    expect(Array.isArray(descriptions)).to.be.equal(true)
+    expect(descriptions).to.deep.equal([{
+      commandName: 'files:close-all',
+      description: 'Files: Close All'
+    }, {
+      commandName: 'files:open-project',
+      description: 'Files: Open Project'
+    }]);
+
+
+    disposables.dispose()
   })
 })
 
