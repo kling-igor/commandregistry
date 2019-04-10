@@ -28,4 +28,8 @@ export class Workspace {
   closeAllFiles() {
     // console.log('CLOSE ALL OPENED FILES')
   }
+
+  openProject() {
+
+  }
 }

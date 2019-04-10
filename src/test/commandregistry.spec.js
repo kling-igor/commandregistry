@@ -2,13 +2,14 @@ import chai, { expect } from 'chai'
 import deepEql from 'deep-eql'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-chai.use(sinonChai);
-
+import chaiAsPromised from "chai-as-promised"
 
 import { CommandRegistry } from '..'
 import { Workspace } from '../workspace'
 import { TextEditor } from '../text-editor'
 
+chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 
 describe('command registry', () => {
@@ -68,6 +69,35 @@ describe('command registry', () => {
 
     // teardown
     textEditor.foldAll.restore()
+
+    disposabel.dispose()
+  })
+
+  it('should not execute unregistered command', () => {
+    const workspace = new Workspace()
+    const commands = new CommandRegistry()
+    commands.attach(workspace)
+
+    const result = commands.handleCommand(workspace, 'files:open-project')
+
+    expect(result).to.be.null
+  })
+
+  it('should return promise on command execution', () => {
+    const workspace = new Workspace()
+
+    const commands = new CommandRegistry()
+
+    const disposabel = commands.add('workspace', 'files:close-all', function (args) {
+      this.closeAllFiles()
+    })
+
+    commands.attach(workspace)
+
+
+    const promise = commands.handleCommand(workspace, 'files:close-all')
+
+    expect(promise).to.be.fulfilled
 
     disposabel.dispose()
   })
