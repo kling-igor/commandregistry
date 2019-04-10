@@ -6,55 +6,14 @@ chai.use(sinonChai);
 
 
 import { CommandRegistry } from '..'
+import { Workspace } from '../workspace'
+import { TextEditor } from '../text-editor'
 
-class Workspace {
-  parent = null
 
-  children = []
-
-  tag = 'workspace'
-
-  add(child) {
-    if (this.children.includes(child)) {
-      console.log('already includes')
-      return
-    }
-
-    this.children.push(child)
-    child.setParent(this)
-  }
-
-  remove(removingChild) {
-    const length = this.children.length
-
-    this.children = this.children.filter(item => item != removingChild)
-
-    if (this.children.length !== length) {
-      removingChild.removeFromParent(this)
-    }
-  }
-
-  closeAllFiles() {
-    // console.log('CLOSE ALL OPENED FILES')
-  }
-}
-
-class TextEditor {
-  tag = 'text-editor'
-
-  setParent(parent) {
-    this.parent = parent
-  }
-
-  removeFromParent(parent) {
-    if (this.parent === parent) {
-      this.parent = null
-    }
-  }
-}
 
 describe('command registry', () => {
-  it('should be true', () => {
+  it('should execute registered command on Workspace', () => {
+
     const workspace = new Workspace()
     const textEditor = new TextEditor()
     workspace.add(textEditor)
@@ -79,6 +38,36 @@ describe('command registry', () => {
 
     // teardown
     workspace.closeAllFiles.restore()
+
+    disposabel.dispose()
+  })
+
+  it('should execute registered command on TextEditor', () => {
+
+    const workspace = new Workspace()
+    const textEditor = new TextEditor()
+    workspace.add(textEditor)
+
+    const commands = new CommandRegistry()
+
+    const disposabel = commands.add('text-editor', 'editor:fold-all', function (args) {
+      this.foldAll()
+    })
+
+    commands.attach(workspace)
+
+
+    // setup
+    sinon.spy(textEditor, "foldAll")
+
+    commands.handleCommand(textEditor, 'editor:fold-all')
+
+    // expect(true).to.be.equals(true)
+
+    expect(textEditor.foldAll).to.have.been.calledOnce
+
+    // teardown
+    textEditor.foldAll.restore()
 
     disposabel.dispose()
   })
